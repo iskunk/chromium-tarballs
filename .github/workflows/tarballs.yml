@@ -1,0 +1,39 @@
+name: Chromium Tarball Generation
+
+on:
+    push:
+        branches:
+            - master
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+
+        container:
+            image: gentoo/stage3:nomultilib
+
+        if: github.event_name == 'create' && github.event.ref_type == 'tag'
+        steps:
+          - name: Checkout repository
+            uses: actions/checkout@v2
+
+          - name: Package Chromium tarballs
+            run: ./package_chromium.sh ${{ github.event.ref }}
+
+          - name: Use S3cmd
+            uses: s3-actions/s3cmd@v1.9.0
+            with:
+                provider: digitalocean
+                region: 'SYD1'
+                access_key: ${{ secrets.S3_ACCESS_KEY }}
+                secret_key: ${{ secrets.S3_SECRET_KEY }}
+
+          - name: Upload tarballs to S3
+            run: |
+                s3cmd put out/*.tar.xz s3://${{ vars.S3_BUCKET }}/
+
+          - name: Archive build artifacts
+            uses: actions/upload-artifact@v2
+            with:
+                name: build-artifacts
+                path: out/
