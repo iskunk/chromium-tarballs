@@ -1,63 +1,90 @@
 name: Chromium Tarball Generation
 
 on:
-    push:
-        tags:
-            - '*'
+  push:
+    tags:
+      - '*'
 
 jobs:
-    build:
-        runs-on: ubuntu-latest
+  generate-tarball:
+    runs-on: self-hosted
 
-        container:
-            image: gentoo/stage3:nomultilib
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-        steps:
-          - name: Checkout repository
-            uses: actions/checkout@v4
+      - name: Package Chromium tarballs for ${{ github.ref_name }}
+        run: ./package_chromium.sh ${{ github.ref_name }}
 
-          - name: Install dependencies
-            run: >
-              emerge-webrsync && getuto &&
-              emerge --getbinpkg dev-vcs/git
+      - name: Archive build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+            name: build-artifacts
+            path: out/
 
-          - name: Package Chromium tarballs for ${{ github.ref_name }}
-            run: ./package_chromium.sh ${{ github.ref_name }}
+      - name: Notify success
+        if: success()
+        uses: Gottox/irc-message-action@v2.1.3
+        with:
+          server: irc.libera.chat
+          notice: false
+          channel: "#gentoo-chromium"
+          nickname: chromium-notifs
+          message: "Successfully generated Chromium tarballs for ${{ github.ref_name }}"
 
-          - name: Use S3cmd
-            uses: s3-actions/s3cmd@v1.9.0
-            with:
-                provider: digitalocean
-                region: 'SYD1'
-                access_key: ${{ secrets.S3_ACCESS_KEY }}
-                secret_key: ${{ secrets.S3_SECRET_KEY }}
+      - name: Notify failure
+        if: failure()
+        uses: Gottox/irc-message-action@v2.1.3
+        with:
+          server: irc.libera.chat
+          notice: false
+          channel: "#gentoo-chromium"
+          nickname: chromium-notifs
+          message: "Failed to generate Chromium tarballs for ${{ github.ref_name }}"
 
-          - name: Upload tarballs to S3
-            run: |
-                s3cmd put out/*.tar.xz s3://${{ vars.S3_BUCKET }}/
+  upload-tarball:
+    runs-on: ubuntu-latest
 
-          - name: Archive build artifacts
-            uses: actions/upload-artifact@v4
-            with:
-                name: build-artifacts
-                path: out/
+    needs: generate-tarball
 
-          - name: Notify success
-            if: success()
-            uses: Gottox/irc-message-action@v2.1.3
-            with:
-                server: irc.libera.chat
-                notice: false
-                channel: "#gentoo-chromium"
-                nickname: chromium-notifs
-                message: "Successfully uploaded Chromium tarballs for ${{ github.ref_name }}"
+    container:
+      image: gentoo/stage3:nomultilib
 
-          - name: Notify failure
-            if: failure()
-            uses: Gottox/irc-message-action@v2.1.3
-            with:
-                server: irc.libera.chat
-                notice: false
-                channel: "#gentoo-chromium"
-                nickname: chromium-notifs
-                message: "Failed to upload Chromium tarballs for ${{ github.ref_name }}"
+    steps:
+      - name: Install dependencies
+        run: >
+          emerge-webrsync && getuto &&
+          emerge --getbinpkg s3cmd
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+            name: build-artifacts
+
+      - name: Upload tarballs to S3
+        run: |
+          s3cmd --host=syd1.digitaloceanspaces.com \
+          --host-bucket=%(bucket)s.syd1.digitaloceanspaces.com \
+          --acccess_key=${{ secrets.S3_ACCESS_KEY }} \
+          --secret_key=${{ secrets.S3_SECRET_KEY }} \
+          put out/*.tar.xz s3://${{ vars.S3_BUCKET }}/
+
+      - name: Notify success
+        if: success()
+        uses: Gottox/irc-message-action@v2.1.3
+        with:
+          server: irc.libera.chat
+          notice: false
+          channel: "#gentoo-chromium"
+          nickname: chromium-notifs
+          message: "Successfully uploaded Chromium tarballs for ${{ github.ref_name }}"
+
+      - name: Notify failure
+        if: failure()
+        uses: Gottox/irc-message-action@v2.1.3
+        with:
+          server: irc.libera.chat
+          notice: false
+          channel: "#gentoo-chromium"
+          nickname: chromium-notifs
+          message: "Failed to upload Chromium tarballs for ${{ github.ref_name }}"

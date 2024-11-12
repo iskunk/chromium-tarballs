@@ -16,6 +16,7 @@ set -e
 # 1. Clones the depot_tools repository from the Chromium project's Git repository.
 # 2. Adds the cloned depot_tools directory to the system PATH environment variable.
 get_depot_tools() {
+	clog "Cloning depot_tools repository"
 	git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git || die "Failed to clone depot_tools repository"
 	export PATH="$(pwd)/depot_tools:${PATH}"
 }
@@ -36,8 +37,9 @@ configure_gclient() {
 	if [ -z "$1" ]; then
 		die "${FUNCNAME}: No version specified"
 	fi
-	gclient config --name src https://chromium.googlesource.com/chromium/src.git@"$1" ||
-		die "Failed to configure gclient with version $1"
+	clog "Configuring gclient with version ${1}"
+	gclient config --name src "https://chromium.googlesource.com/chromium/src.git@${1}" ||
+		die "Failed to configure gclient with version ${1}"
 	echo "target_os = [ 'linux' ]" >> .gclient
 }
 
@@ -51,6 +53,7 @@ configure_gclient() {
 # 6. Updates the PGO profiles for the Linux target using the specified Google Storage URL base.
 
 run_hooks() {
+	clog "Running post-checkout hooks"
 	src/build/util/lastchange.py -o src/build/util/LASTCHANGE
 	src/build/util/lastchange.py -m GPU_LISTS_VERSION --revision-id-only --header src/gpu/config/gpu_lists_version.h
 	src/build/util/lastchange.py -m SKIA_COMMIT_HASH -s src/third_party/skia --header src/skia/ext/skia_commit_hash.h
@@ -68,8 +71,11 @@ export_tarballs() {
 		die "${FUNCNAME}: No version specified"
 	fi
 	mkdir out
-	./export_tarball.py --version --xz --test-data --remove-nonessential-files chromium-"${1}" --progress --src-dir src/
+	clog "Exporting tarballs for version ${1}:"
+	clog "Exporting test data tarball"
+	./export_tarball.py --version --xz --test-data --remove-nonessential-files "chromium-${1}" --progress --src-dir src/
 	mv "chromium-${1}.tar.xz" "out/chromium-${1}-testdata-linux.tar.xz" || die "Failed to move test data tarball"
+	clog "Exporting Main tarball"
 	./export_tarball.py --version --xz --remove-nonessential-files chromium-"${1}" --progress --src-dir src/
 	mv "chromium-${1}.tar.xz" "out/chromium-${1}-linux.tar.xz" || die "Failed to move tarball"
 }
@@ -81,9 +87,12 @@ main() {
 
 	local version="$1"
 
+	clog "Packaging Chromium version ${version}"
+
 	get_depot_tools
 	configure_gclient "$version"
 	# We don't need the full history of the Chromium repository to generate a tarball, and we'll run a limited subset of manual hooks.
+	clog "Syncing Chromium sources with no history"
 	gclient sync --nohooks --no-history
 	run_hooks
 	export_tarballs "$version"

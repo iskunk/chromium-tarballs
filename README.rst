@@ -2,7 +2,22 @@
 
 This repository uses GitHub CI to automate the process documented below.
 
+## How to use
+
+Requires a self-hosted runner (or some CI dollars) to run the workflow due to the size of the Chromium source code.
+
+Currently uses Gentoo with the following additional packages:
+
+- app-arch/xz-utils
+- dev-vcs/git
+- net-misc/s3cmd
+- sys-apps/pv
+
+## Why?
+
 Sometimes upstream's CI breaks and it's up to us to create our very own Chromium tarball for a given release.
+
+# Manual Steps
 
 Required: `export_tarball.py <https://chromium.googlesource.com/chromium/tools/build/+/refs/heads/main/recipes/recipe_modules/chromium/resources/export_tarball.py>`_
 

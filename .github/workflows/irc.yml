@@ -1,32 +1,32 @@
 name: Chromium Notifications
 
 on:
-    push:
-        tags:
-            - '*'
+  push:
+    tags:
+      - '*'
 
 jobs:
-    notification:
-        runs-on: ubuntu-20.04
-        name: notifications
+  notification:
+    runs-on: ubuntu-20.04
+    name: notifications
 
-        container:
-            image: gentoo/stage3:nomultilib
+    container:
+      image: gentoo/stage3:nomultilib
 
-        steps:
-          - name: Checkout repository
-            uses: actions/checkout@v4
-          - name: Run get_chromium_versions.py for ${{ github.ref_name }}
-            id: get_versions
-            run: |
-              version=$(python3 get_chromium_versions.py --version ${{ github.ref_name }})
-              echo "::set-output name=version::$version"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-          - name: irc tag created
-            uses: Gottox/irc-message-action@v2.1.3
-            with:
-                server: irc.libera.chat
-                notice: false
-                channel: "#gentoo-chromium"
-                nickname: chromium-notifs
-                message: "New Chromium: ${{ steps.get_versions.outputs.version }}"
+      - name: Run get_chromium_versions.py for ${{ github.ref_name }}
+        id: get_version
+        run: |
+          echo "version=$(python3 get_chromium_versions.py --version ${{ github.ref_name }})" >> ${GITHUB_OUTPUT}
+
+      - name: irc tag created
+        uses: Gottox/irc-message-action@v2.1.3
+        with:
+          server: irc.libera.chat
+          notice: false
+          channel: "#gentoo-chromium"
+          nickname: chromium-notifs
+          message: "New Release: ${{ steps.get_version.outputs.version }}"
