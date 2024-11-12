@@ -2,8 +2,8 @@ name: Chromium Tarball Generation
 
 on:
     push:
-        branches:
-            - master
+        tags:
+            - '*'
 
 jobs:
     build:
@@ -12,13 +12,17 @@ jobs:
         container:
             image: gentoo/stage3:nomultilib
 
-        if: github.event_name == 'create' && github.event.ref_type == 'tag'
         steps:
           - name: Checkout repository
-            uses: actions/checkout@v2
+            uses: actions/checkout@v4
 
-          - name: Package Chromium tarballs
-            run: ./package_chromium.sh ${{ github.event.ref }}
+          - name: Install dependencies
+            run: >
+              emerge-webrsync && getuto &&
+              emerge --getbinpkg dev-vcs/git
+
+          - name: Package Chromium tarballs for ${{ github.ref_name }}
+            run: ./package_chromium.sh ${{ github.ref_name }}
 
           - name: Use S3cmd
             uses: s3-actions/s3cmd@v1.9.0
@@ -33,7 +37,27 @@ jobs:
                 s3cmd put out/*.tar.xz s3://${{ vars.S3_BUCKET }}/
 
           - name: Archive build artifacts
-            uses: actions/upload-artifact@v2
+            uses: actions/upload-artifact@v4
             with:
                 name: build-artifacts
                 path: out/
+
+          - name: Notify success
+            if: success()
+            uses: Gottox/irc-message-action@v2.1.3
+            with:
+                server: irc.libera.chat
+                notice: false
+                channel: "#gentoo-chromium"
+                nickname: chromium-notifs
+                message: "Successfully uploaded Chromium tarballs for ${{ github.ref_name }}"
+
+          - name: Notify failure
+            if: failure()
+            uses: Gottox/irc-message-action@v2.1.3
+            with:
+                server: irc.libera.chat
+                notice: false
+                channel: "#gentoo-chromium"
+                nickname: chromium-notifs
+                message: "Failed to upload Chromium tarballs for ${{ github.ref_name }}"

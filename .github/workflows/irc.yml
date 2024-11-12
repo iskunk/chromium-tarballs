@@ -2,19 +2,24 @@ name: Chromium Notifications
 
 on:
     push:
-        branches:
-            - master
+        tags:
+            - '*'
 
 jobs:
     notification:
-        if: github.event_name == 'create' && github.event.ref_type == 'tag'
         runs-on: ubuntu-20.04
         name: notifications
+
+        container:
+            image: gentoo/stage3:nomultilib
+
         steps:
-          - name: Run get_chromium_versions.py for ${{ github.event.ref }}
+          - name: Checkout repository
+            uses: actions/checkout@v4
+          - name: Run get_chromium_versions.py for ${{ github.ref_name }}
             id: get_versions
             run: |
-              version=$(python get_chromium_versions.py --version ${{ github.event.ref }})
+              version=$(python3 get_chromium_versions.py --version ${{ github.ref_name }})
               echo "::set-output name=version::$version"
 
           - name: irc tag created
@@ -23,5 +28,5 @@ jobs:
                 server: irc.libera.chat
                 notice: false
                 channel: "#gentoo-chromium"
-                nickname: chromium-notifs-gh
+                nickname: chromium-notifs
                 message: "New Chromium: ${{ steps.get_versions.outputs.version }}"
