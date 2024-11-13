@@ -16,8 +16,16 @@ set -e
 # 1. Clones the depot_tools repository from the Chromium project's Git repository.
 # 2. Adds the cloned depot_tools directory to the system PATH environment variable.
 get_depot_tools() {
-	clog "Cloning depot_tools repository"
-	git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git || die "Failed to clone depot_tools repository"
+	clog "Getting depot_tools"
+	if [[ -d "depot_tools" ]]; then
+		clog "depot_tools already exists, pulling latest changes"
+		pushd depot_tools &> /dev/null || die "Failed to enter depot_tools directory"
+		git pull || die "Failed to pull latest changes in depot_tools repository"
+		popd &> /dev/null || die "Failed to exit depot_tools directory"
+	else
+		clog "Cloning depot_tools repository"
+		git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git || die "Failed to clone depot_tools repository"
+	fi
 	export PATH="$(pwd)/depot_tools:${PATH}"
 }
 
@@ -74,10 +82,10 @@ export_tarballs() {
 	clog "Exporting tarballs for version ${1}:"
 	clog "Exporting test data tarball"
 	./export_tarball.py --version --xz --test-data --remove-nonessential-files "chromium-${1}" --progress --src-dir src/
-	mv "chromium-${1}.tar.xz" "out/chromium-${1}-testdata-linux.tar.xz" || die "Failed to move test data tarball"
+	mv "chromium-${1}.tar.xz" "out/chromium-${1}-testdata.tar.xz" || die "Failed to move test data tarball"
 	clog "Exporting Main tarball"
 	./export_tarball.py --version --xz --remove-nonessential-files chromium-"${1}" --progress --src-dir src/
-	mv "chromium-${1}.tar.xz" "out/chromium-${1}-linux.tar.xz" || die "Failed to move tarball"
+	mv "chromium-${1}.tar.xz" "out/chromium-${1}.tar.xz" || die "Failed to move tarball"
 }
 
 main() {

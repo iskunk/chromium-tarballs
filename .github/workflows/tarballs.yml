@@ -13,6 +13,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Configure Git
+        run: |
+          git config --global user.name "Chromium Bot"
+          git config --global user.email "chromium@gentoo.org"
+
       - name: Package Chromium tarballs for ${{ github.ref_name }}
         run: ./package_chromium.sh ${{ github.ref_name }}
 

@@ -4,17 +4,17 @@
 
 # Log an informational message
 clog() {
-    echo -e "\e[32m*\e[0m INFO: $*"
+    echo -e "\e[1m[\e[0m\e[32mINFO\e[0m\e[1m]\e[0m: $*"
 }
 
 # Log a warning message
 cwarn() {
-    echo -e "\e[33m*\e[0m WARNING: $*" >&2
+    echo -e "\e[1m[\e[0m\e[33mWARNING\e[0m\e[1m]\e[0m: $*" >&2
 }
 
 # Log an error message
 cerror() {
-    echo -e "\e[31m*\e[0m ERROR: $*" >&2
+    echo -e "\e[1m[\e[0m\e[31mERROR\e[0m\e[1m]\e[0m: $*" >&2
 }
 
 # Run a command and do not exit on failure
@@ -24,6 +24,6 @@ nonfatal() {
 
 # Log an error message and exit
 die() {
-    eerror "$@"
+    cerror "$@"
     exit 1
 }

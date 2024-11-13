@@ -1,0 +1,7 @@
+.cipd/
+.gclient*
+.gcs*
+*.tar*
+depot_tools/
+out/*
+src/
