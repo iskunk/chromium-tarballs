@@ -78,7 +78,9 @@ export_tarballs() {
 	if [ -z "$1" ]; then
 		die "${FUNCNAME}: No version specified"
 	fi
-	mkdir out
+	if [[ ! -d "out" ]]; then
+		mkdir out || die "Failed to create out directory"
+	fi
 	clog "Exporting tarballs for version ${1}:"
 	clog "Exporting test data tarball"
 	./export_tarball.py --version --xz --test-data --remove-nonessential-files "chromium-${1}" --progress --src-dir src/
