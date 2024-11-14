@@ -5,12 +5,6 @@ on:
     tags:
       - '*'
 
-# Setup a concurrency group to prevent multiple tarball generation jobs from running at the same time
-# This will generate tarballs one-at-a-time (no guarantee of order). I don't have the disk space to run multiple jobs at once.
-concurrency:
-  group: tarball-gen
-  cancel-in-progress: false
-
 jobs:
   generate-tarball:
     runs-on: self-hosted
@@ -82,7 +76,7 @@ jobs:
 
       - name: Notify success
         if: success()
-        uses: Gottox/irc-message-action@v2.1.3
+        uses: Gottox/irc-message-action@v2.1.5
         with:
           server: irc.libera.chat
           notice: false
@@ -92,7 +86,7 @@ jobs:
 
       - name: Notify failure
         if: failure()
-        uses: Gottox/irc-message-action@v2.1.3
+        uses: Gottox/irc-message-action@v2.1.5
         with:
           server: irc.libera.chat
           notice: false

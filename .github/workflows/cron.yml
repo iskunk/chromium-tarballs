@@ -34,17 +34,54 @@ jobs:
           git config --global user.email "chromium@gentoo.org"
 
       - name: Tag new versions
+        id: tag_versions
         if: steps.get_versions.outputs.versions != ''
         run: |
           for version in ${{ steps.get_versions.outputs.versions }}; do
               if git rev-parse "${version}" >/dev/null 2>&1; then
                   echo "Tag ${version} already exists"
               else
-                  echo "Tagging Chromium version ${version}"
-                  git tag -a "${version}" -m "Tagging Chromium version $version"
+                  _ver=$(python3 get_chromium_versions.py --version ${version})
+                  echo "Tagging ${_ver}"
+                  git tag -a "${version}" -m "${_ver}"
+                  if [[ "${_ver}" == *beta* ]]; then
+                      echo beta="${_ver}" >> ${GITHUB_OUTPUT}
+                  elif [[ "${_ver}" == *dev* ]]; then
+                      echo dev="${_ver}"  >> ${GITHUB_OUTPUT}
+                  elif [[ "${_ver}" == *stable* ]]; then
+                      echo stable="${_ver}"  >> ${GITHUB_OUTPUT}
+                  fi
               fi
           done
           echo "Pushing tags to GitHub"
           git push --follow-tags
-        env:
-          GITHUB_TOKEN: ${{ secrets.PAT }}
+
+      - name: Update IRC (Stable)
+        uses: Gottox/irc-message-action@v2.1.5
+        if: steps.tag_versions.outputs.stable != ''
+        with:
+          server: irc.libera.chat
+          notice: false
+          channel: "#gentoo-chromium"
+          nickname: chromium-notifs
+          message: "New release: ${{ steps.tag_versions.outputs.stable }}"
+
+      - name: Update IRC (Beta)
+        uses: Gottox/irc-message-action@v2.1.5
+        if: steps.tag_versions.outputs.beta != ''
+        with:
+          server: irc.libera.chat
+          notice: false
+          channel: "#gentoo-chromium"
+          nickname: chromium-notifs
+          message: "New release: ${{ steps.tag_versions.outputs.beta }}"
+
+      - name: Update IRC (Dev)
+        uses: Gottox/irc-message-action@v2.1.5
+        if: steps.tag_versions.outputs.dev != ''
+        with:
+          server: irc.libera.chat
+          notice: false
+          channel: "#gentoo-chromium"
+          nickname: chromium-notifs
+          message: "New release: ${{ steps.tag_versions.outputs.dev }}"
