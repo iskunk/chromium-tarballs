@@ -5,6 +5,12 @@ on:
     tags:
       - '*'
 
+# Setup a concurrency group to prevent multiple tarball generation jobs from running at the same time
+# This will generate tarballs one-at-a-time (no guarantee of order). I don't have the disk space to run multiple jobs at once.
+concurrency:
+  group: tarball-gen
+  cancel-in-progress: false
+
 jobs:
   generate-tarball:
     runs-on: self-hosted
