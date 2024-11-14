@@ -1,8 +1,8 @@
 name: Chromium Version Tagging
 
 on:
-    schedule:
-        - cron: '0 */3 * * *'
+  schedule:
+    - cron: '0 */3 * * *'
 
 jobs:
   tag_chromium_versions:
@@ -12,39 +12,39 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-            # If we use the default github.token we can't trigger workflows when we push new tags
-            token: ${{ secrets.PAT }}
-            # If we don't set fetch-depth to 0, we won't be able to fetch tags
-            fetch-depth: 0
+          # If we use the default github.token we can't trigger workflows when we push new tags
+          token: ${{ secrets.PAT }}
+          # If we don't set fetch-depth to 0, we won't be able to fetch tags
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-            python-version: '3.x'
+          python-version: '3.x'
 
       - name: Run get_chromium_versions.py
         id: get_versions
         run: |
-            echo "versions=$(python get_chromium_versions.py | tr '\n' ' ')" >> $GITHUB_OUTPUT
+          echo "versions=$(python get_chromium_versions.py | tr '\n' ' ')" >> $GITHUB_OUTPUT
 
       - name: Configure Git
         if: steps.get_versions.outputs.versions != ''
         run: |
-            git config --global user.name "Chromium Bot"
-            git config --global user.email "chromium@gentoo.org"
+          git config --global user.name "Chromium Bot"
+          git config --global user.email "chromium@gentoo.org"
 
       - name: Tag new versions
         if: steps.get_versions.outputs.versions != ''
         run: |
-            for version in ${{ steps.get_versions.outputs.versions }}; do
-                if git rev-parse "${version}" >/dev/null 2>&1; then
-                    echo "Tag ${version} already exists"
-                else
-                    echo "Tagging Chromium version ${version}"
-                    git tag -a "${version}" -m "Tagging Chromium version $version"
-                fi
-            done
-            echo "Pushing tags to GitHub"
-            git push --follow-tags
+          for version in ${{ steps.get_versions.outputs.versions }}; do
+              if git rev-parse "${version}" >/dev/null 2>&1; then
+                  echo "Tag ${version} already exists"
+              else
+                  echo "Tagging Chromium version ${version}"
+                  git tag -a "${version}" -m "Tagging Chromium version $version"
+              fi
+          done
+          echo "Pushing tags to GitHub"
+          git push --follow-tags
         env:
-            GITHUB_TOKEN: ${{ secrets.PAT }}
+          GITHUB_TOKEN: ${{ secrets.PAT }}
