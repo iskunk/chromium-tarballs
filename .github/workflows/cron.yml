@@ -14,6 +14,8 @@ jobs:
         with:
             # If we use the default github.token we can't trigger workflows when we push new tags
             token: ${{ secrets.PAT }}
+            # If we don't set fetch-depth to 0, we won't be able to fetch tags
+            fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
