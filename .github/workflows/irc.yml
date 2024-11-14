@@ -5,6 +5,13 @@ on:
     tags:
       - '*'
 
+# Setup a concurrency group to prevent multiple notifications from being sent at the same time
+# This will send the notifications one-at-a-time (no guarantee of order)
+concurrency:
+  group: irc-notifs
+  cancel-in-progress: false
+
+
 jobs:
   notification:
     runs-on: ubuntu-20.04
