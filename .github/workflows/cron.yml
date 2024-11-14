@@ -36,7 +36,7 @@ jobs:
         run: |
             for version in ${{ steps.get_versions.outputs.versions }}; do
                 if git rev-parse "${version}" >/dev/null 2>&1; then
-                    echo "Tag ${version}[] already exists"
+                    echo "Tag ${version} already exists"
                 else
                     git tag -a "${version}" -m "Tagging Chromium version $version"
                     git push --follow-tags
