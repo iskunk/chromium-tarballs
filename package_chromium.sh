@@ -20,6 +20,10 @@ get_depot_tools() {
 	if [[ -d "depot_tools" ]]; then
 		clog "depot_tools already exists, pulling latest changes"
 		pushd depot_tools &> /dev/null || die "Failed to enter depot_tools directory"
+		if [ "$(git symbolic-ref --short -q HEAD)" == "" ]; then
+			clog "Currently in a detached HEAD state, checking out main branch"
+			git checkout main || die "Failed to checkout main branch in depot_tools repository"
+		fi
 		git pull || die "Failed to pull latest changes in depot_tools repository"
 		popd &> /dev/null || die "Failed to exit depot_tools directory"
 	else
