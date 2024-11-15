@@ -71,8 +71,9 @@ class MyTarFile(tarfile.TarFile):
     rel_name = os.path.relpath(name, self.__src_dir)
     _, file_name = os.path.split(name)
     if file_name in ('.svn', 'out'):
-      self.__report_skipped(name)
-      return
+      if 'node_modules' not in _:
+        self.__report_skipped(name)
+        return
     if file_name == '.git':
       if not any(
           rel_name.startswith(essential) for essential in ESSENTIAL_GIT_DIRS):
