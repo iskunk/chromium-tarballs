@@ -77,6 +77,38 @@ run_hooks() {
 		die "Failed to download V8 PGO profiles"
 }
 
+
+
+get_gn_sources() {
+	clog "Fetching GN sources"
+	local temp_dir git_root tools_gn gn_commit basename
+	temp_dir=$(mktemp -d)
+	git_root="${temp_dir}/gn"
+	tools_gn="src/tools/gn"
+	# This is x86_64 only(?); we should add support for other architectures in the future
+	gn_commit=$(src/buildtools/linux64/gn --version | grep -oP '\d+ \((.+)\)' | cut -d ' ' -f 2 | tr -d '()')
+
+	# Clone the GN repository
+	git clone https://gn.googlesource.com/gn "${git_root}" || die "Failed to clone GN repository"
+	git -C "${git_root}" checkout "${gn_commit}"
+
+	# Generate last_commit_position.h
+	python3 "${git_root}/build/gen.py" || die "Failed to generate last_commit_position.h"
+
+	# Move GN sources to the tools/gn directory
+	echo $(find "${git_root}" -maxdepth 1 -mindepth 1 -not -name ".git" -not -name ".gitignore" -not -name ".linux-sysroot" -not -name "out" -print)
+	find "${git_root}" -maxdepth 1 -mindepth 1 -not -name ".git" -not -name ".gitignore" -not -name ".linux-sysroot" -not -name "out" -print | while read -r f; do
+		basename=$(basename "$f")
+		mv "$f" "$tools_gn/$basename" || die "Failed to move $basename"
+	done
+
+	# Move last_commit_position.h
+	mv "${git_root}/out/last_commit_position.h" "${tools_gn}/bootstrap/last_commit_position.h" || die "Failed to move last_commit_position.h"
+
+	# Clean up temporary directory
+	rm -rf "$temp_dir" || die "Failed to remove temporary directory"
+}
+
 # This function exports the tarballs for a given version of Chromium.
 # We suffix the tarball with -linux so that it doesn't conflict with
 # official tarballs, whenever they come out.
@@ -123,6 +155,7 @@ main() {
 	clog "Syncing Chromium sources with no history"
 	gclient sync --nohooks --no-history
 	run_hooks
+	get_gn_sources
 	export_tarballs "$version"
 }
 
