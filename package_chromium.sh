@@ -96,11 +96,13 @@ export_tarballs() {
 	mv "chromium-${1}.tar.xz" "out/chromium-${1}-linux.tar.xz" || die "Failed to move main tarball"
 	clog "Generating hashes"
 	local hash tarball
-	for tarball in "chromium-${1}.tar.xz" "chromium-${1}-testdata.tar.xz"; do
+	pushd out &> /dev/null || die "Failed to enter out directory"
+	for tarball in "chromium-${1}-linux.tar.xz" "chromium-${1}-linux-testdata.tar.xz"; do
 		for hash in md5 sha1 sha224 sha256 sha384 sha512; do
-			(cd out && echo "$hash  $(${hash}sum "$tarball")")
-		done > "out/$tarball.hashes"
+			echo "${hash}  $(${hash}sum ${tarball})" >> "${tarball}.hashes"
+		done
 	done
+	popd &> /dev/null || die "Failed to exit out directory"
 }
 
 main() {
