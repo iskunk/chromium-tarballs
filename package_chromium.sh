@@ -96,7 +96,6 @@ get_gn_sources() {
 	python3 "${git_root}/build/gen.py" || die "Failed to generate last_commit_position.h"
 
 	# Move GN sources to the tools/gn directory
-	echo $(find "${git_root}" -maxdepth 1 -mindepth 1 -not -name ".git" -not -name ".gitignore" -not -name ".linux-sysroot" -not -name "out" -print)
 	find "${git_root}" -maxdepth 1 -mindepth 1 -not -name ".git" -not -name ".gitignore" -not -name ".linux-sysroot" -not -name "out" -print | while read -r f; do
 		basename=$(basename "$f")
 		mv "$f" "$tools_gn/$basename" || die "Failed to move $basename"
