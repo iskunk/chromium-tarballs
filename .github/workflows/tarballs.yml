@@ -46,6 +46,8 @@ jobs:
         with:
             name: build-artifacts
             path: out/
+            compression-level: 0
+            retention-days: 5
 
       - name: Notify success
         if: success() && github.event_name == 'push'
@@ -92,7 +94,7 @@ jobs:
           --host-bucket='%(bucket)s.syd1.digitaloceanspaces.com' \
           --access_key=${{ secrets.S3_ACCESS_KEY }} \
           --secret_key=${{ secrets.S3_SECRET_KEY }} \
-          put out/*.tar.xz* s3://${{ vars.S3_BUCKET }}/
+          put chromium*.tar.xz* s3://${{ vars.S3_BUCKET }}/
 
       - name: Notify success
         if: success()
