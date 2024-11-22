@@ -136,7 +136,7 @@ def main():
         print(f"Chromium {versions[0][0]}: {versions[0][2]} ({datestring})")
     else:
         for chromium in versions:
-            datestring = datetime.datetime.strptime(versions[0][1], "%Y-%m-%dT%H:%M:%S.%fZ")
+            datestring = datetime.datetime.strptime(chromium[1], "%Y-%m-%dT%H:%M:%S.%fZ")
             if datestring > datetime.datetime.now() - datetime.timedelta(hours=args.hours):
                 if args.verbose:
                     datestring = datestring.strftime("%B %d, %Y at %I:%M UTC")
