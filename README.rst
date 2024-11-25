@@ -17,7 +17,6 @@ The tarballs generated via this process do not contain the following:
 - Debian sysroot(s)
 - Toolchain (Rust, Clang, etc.)
 - third_party/instrumented_libs
-- many test files; the chromium test suite should still run however.
 
 Additionally no hooks are run on checkout and only a small subset are run afterwards. These are:
 
