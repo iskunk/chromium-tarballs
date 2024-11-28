@@ -2,8 +2,10 @@ name: Chromium Version Tagging
 
 on:
   schedule:
-    - cron: '0 */3 * * *'
+    - cron: '0 */8 * * *'
   workflow_dispatch:
+  repository_dispatch:
+    types: [tag-chromium-versions]
 
 jobs:
   tag_chromium_versions:
