@@ -48,7 +48,8 @@ jobs:
         id: get_release_info
         if: github.event_name == 'push'
         run: |
-          echo "annotation=$(git tag -l --format='%(contents:subject)' ${{ github.ref_name }})" >> ${GITHUB_ENV}
+          echo "annotation=$(git tag -l --format='%(contents:subject)' ${{ github.ref_name }})" >> ${GITHUB_OUTPUT}
+          echo "channel=$(git tag -l --format='%(contents:subject)' ${{ github.ref_name }} awk '{ print $3 }')" >> ${GITHUB_OUTPUT}
           echo "channel=$(git tag -l --format='%(contents:subject)' ${{ github.ref_name }} awk '{ print $3 }')" >> ${GITHUB_ENV}
 
       - name: Package Chromium tarballs for ${{ inputs.version || github.ref_name }}
