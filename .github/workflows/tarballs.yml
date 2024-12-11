@@ -146,10 +146,10 @@ jobs:
           release_name: ${{ needs.generate-tarball.outputs.annotation }}
           body: |
             Files:
-            - [Chromium ${{ github.ref_name }}](https://chromium-tarballs.distfiles.gentoo.org/${{ github.ref_name }}-linux.tar.xz)
-            - [Chromium ${{ github.ref_name }} hashes](https://chromium-tarballs.distfiles.gentoo.org/${{ github.ref_name }}-linux.tar.xz.hashes)
-            - [Chromium ${{ github.ref_name }} testdata](https://chromium-tarballs.distfiles.gentoo.org/${{ github.ref_name }}-linux-testdata.tar.xz)
-            - [Chromium ${{ github.ref_name }} testdata hashes](https://chromium-tarballs.distfiles.gentoo.org/${{ github.ref_name }}-linux-testdata.tar.xz.hashes)
+            - [Chromium ${{ github.ref_name }}](https://chromium-tarballs.distfiles.gentoo.org/chromium-${{ github.ref_name }}-linux.tar.xz)
+            - [Chromium ${{ github.ref_name }} hashes](https://chromium-tarballs.distfiles.gentoo.org/chromium-${{ github.ref_name }}-linux.tar.xz.hashes)
+            - [Chromium ${{ github.ref_name }} testdata](https://chromium-tarballs.distfiles.gentoo.org/chromium-${{ github.ref_name }}-linux-testdata.tar.xz)
+            - [Chromium ${{ github.ref_name }} testdata hashes](https://chromium-tarballs.distfiles.gentoo.org/chromium-${{ github.ref_name }}-linux-testdata.tar.xz.hashes)
 
           draft: false
           prerelease: false
