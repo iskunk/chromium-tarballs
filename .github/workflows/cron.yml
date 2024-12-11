@@ -25,15 +25,10 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Get Chromium versions
+      - name: Run get_chromium_versions.py
         id: get_versions
         run: |
-          curl --fail-with-body --no-progress-meter -o releases.json \
-            'https://versionhistory.googleapis.com/v1/chrome/platforms/linux/channels/all/versions/all/releases?filter=channel%3C=dev&order_by=version%20desc'
-          jq -r 'limit(10; .releases[].version)' releases.json > versions.txt
-          echo "Recent versions:"
-          cat versions.txt
-          echo "versions=$(tr '\n' ' ' < versions.txt)" >> $GITHUB_OUTPUT
+          echo "versions=$(python get_chromium_versions.py | tr '\n' ' ')" >> $GITHUB_OUTPUT
 
       - name: Configure Git
         if: steps.get_versions.outputs.versions != ''
@@ -49,17 +44,7 @@ jobs:
               if git rev-parse "${version}" >/dev/null 2>&1; then
                   echo "Tag ${version} already exists"
               else
-                  _ver=$(jq -r --arg VERSION "${version}" \
-                    '.releases[]
-                     | select(.version==$VERSION)
-                     | "Chromium " + .version + ": "
-                       + (.name | sub(".*/channels/(?<ch>\\w+)/.*"; "\(.ch)"))
-                       + " "
-                       + (.serving.startTime
-                          | sub("\\.\\d+"; "")
-                          | fromdateiso8601
-                          | strftime("(%B %d, %Y at %I:%M UTC)"))
-                    ' releases.json)
+                  _ver=$(python3 get_chromium_versions.py --version ${version})
                   echo "Tagging ${_ver}"
                   git tag -a "${version}" -m "${_ver}"
                   if [[ "${_ver}" == *beta* ]]; then
